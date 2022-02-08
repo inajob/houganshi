@@ -102,13 +102,21 @@
                 })
             })
 
-            window.addEventListener("click", (e) => {
-                console.log(e.target.dataset)
+            let touch = (e) => {
+                console.log(e.target)
                 let x = parseInt(e.target.dataset.x)
                 let y = parseInt(e.target.dataset.y)
                 setCursor(x, y)
-            }, true)
-
+            }
+            if(window.ontouchstart){
+                window.addEventListener("touchstart", (e) => {
+                    touch(e)
+                }, true)
+            }else{
+                window.addEventListener("click", (e) => {
+                    touch(e)
+                }, true)
+            }
         </script>
     </head>
     <body>
