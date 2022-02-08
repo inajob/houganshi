@@ -1,0 +1,118 @@
+<html>
+    <head>
+        <style>
+            html, body{
+                margin: 0;
+                padding: 0;
+            }
+            .cursor{
+                position:absolute;
+                top:0px;
+                left:0px;
+                background-color: rgba(255,255,255, 0.1);
+                border: none;
+                outline:none;
+                width: 100px;
+                height: 20px;
+            }
+        </style>
+        <script>
+            console.log("test")
+            let cursorElm = document.createElement("input")
+            let data = [];
+            let cursorX = 0;
+            let cursorY = 0;
+            let setCursor = (x,y) => {
+                cursorElm.style.top = y * 20
+                cursorElm.style.left = x * 16
+                cursorElm.focus()
+                cursorX = x;
+                cursorY = y;
+            }
+            let setChar = (x, y, c) => {
+                data[y][x].innerHTML = c
+            }
+            window.addEventListener("load", (e) => {
+                let main = document.getElementById("main")
+                for(let i = 0; i < 25; i ++){
+                    let line = document.createElement("div")
+                    let lineElms = []
+                    line.style.display = "flex"
+                    for(let j = 0; j < 50; j ++){
+                        let elm = document.createElement("div")
+                        elm.style.flexShrink = "0"
+                        elm.style.flexBasis = "16px"
+                        elm.style.height = "20px"
+                        elm.style.backgroundColor = "#ddf"
+                        elm.style.outline = "solid 1px #eef"
+                        elm.innerHTML = ""
+                        elm.dataset.x = j
+                        elm.dataset.y = i
+                        line.appendChild(elm)
+                        lineElms.push(elm)
+                    }
+                    main.appendChild(line)
+                    data.push(lineElms)
+                }
+                cursorElm.type = "text"
+                cursorElm.className = "cursor"
+                main.appendChild(cursorElm)
+
+                let isCompotision = false
+                cursorElm.addEventListener("compositionstart", (e) => {
+                    isCompotision = true
+                })
+                cursorElm.addEventListener("compositionend", (e) => {
+                    isCompotision = false
+                })
+                cursorElm.addEventListener("keydown", (e) => {
+                    console.log(e.key)
+                    switch(e.key){
+                        case "Enter":
+                            setCursor(cursorX, cursorY + 1)
+                            break;
+                        case "ArrowDown":
+                            setCursor(cursorX, cursorY + 1)
+                            break;
+                        case "ArrowLeft":
+                            setCursor(cursorX - 1, cursorY )
+                            break;
+                        case "ArrowRight":
+                            setCursor(cursorX + 1, cursorY )
+                            break;
+                        case "ArrowUp":
+                            setCursor(cursorX, cursorY - 1)
+                            break;
+                        case "Backspace":
+                            setCursor(cursorX - 1, cursorY )
+                            setChar(cursorX, cursorY, "")
+                            break;
+                    }
+                })
+                cursorElm.addEventListener("keyup", (e) => {
+                    if(!isCompotision){
+                        let value = cursorElm.value
+                        console.log(value)
+                        for(let i = 0; i < value.length; i ++){
+                            setChar(cursorX + i, cursorY, value[i])
+                        }
+                        setCursor(cursorX + value.length, cursorY)
+                        cursorElm.value = ""
+                    }
+                })
+            })
+
+            window.addEventListener("click", (e) => {
+                console.log(e.target.dataset)
+                let x = parseInt(e.target.dataset.x)
+                let y = parseInt(e.target.dataset.y)
+                setCursor(x, y)
+            }, true)
+
+        </script>
+    </head>
+    <body>
+        <div id="main"></div>
+
+    </body>
+</html>
