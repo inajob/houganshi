@@ -109,10 +109,12 @@
                 setCursor(x, y)
             }
             if(window.ontouchstart){
+                alert("ontouchstart")
                 window.addEventListener("touchstart", (e) => {
                     touch(e)
                 }, true)
             }else{
+                alert("not ontouchstart")
                 window.addEventListener("click", (e) => {
                     touch(e)
                 }, true)
@@ -121,6 +123,5 @@
     </head>
     <body>
         <div id="main"></div>
-
     </body>
 </html>
