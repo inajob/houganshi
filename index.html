@@ -108,7 +108,7 @@
                 let y = parseInt(e.target.dataset.y)
                 setCursor(x, y)
             }
-            if(window.ontouchstart){
+            if('ontouchstart' in document.documentElement){
                 alert("ontouchstart")
                 window.addEventListener("touchstart", (e) => {
                     touch(e)
