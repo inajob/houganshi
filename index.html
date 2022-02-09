@@ -15,13 +15,18 @@
                 width: 100px;
                 height: 20px;
             }
+            #source{
+                width:100%;
+                height:300px;
+            }
         </style>
         <script>
-            console.log("test")
             let cursorElm = document.createElement("input")
             let data = [];
             let cursorX = 0;
             let cursorY = 0;
+
+            // === API ===
             let setCursor = (x,y) => {
                 cursorElm.style.top = y * 20
                 cursorElm.style.left = x * 16
@@ -32,8 +37,54 @@
             let setChar = (x, y, c) => {
                 data[y][x].innerHTML = c
             }
+            let getChar = (x,y) => {
+                return data[y][x].innerHTML
+            }
+            // === Event ===
+            let onClick = (x, y) => {
+                setCursor(x, y)
+            }
+            let onInput = (s) => {
+                for(let i = 0; i < s.length; i ++){
+                    setChar(cursorX, cursorY, s[i])
+                    setCursor(cursorX + 1 ,cursorY)
+                }
+            }
+            let onKeyDown = (k) => {
+                switch(k){
+                        case "Enter":
+                            while(cursorX > 0){
+                                if(cursorX == 0 || getChar(cursorX - 1, cursorY) == ""){
+                                    break;
+                                }
+                                setCursor(cursorX - 1, cursorY)
+                            }
+                            setCursor(cursorX, cursorY + 1)
+                            break;
+                        case "ArrowDown":
+                            setCursor(cursorX, cursorY + 1)
+                            break;
+                        case "ArrowLeft":
+                            setCursor(cursorX - 1, cursorY )
+                            break;
+                        case "ArrowRight":
+                            setCursor(cursorX + 1, cursorY )
+                            break;
+                        case "ArrowUp":
+                            setCursor(cursorX, cursorY - 1)
+                            break;
+                        case "Backspace":
+                            setCursor(cursorX - 1, cursorY )
+                            setChar(cursorX, cursorY, "")
+                            break;
+                    }
+            }
+            // ============
+
             window.addEventListener("load", (e) => {
                 let main = document.getElementById("main")
+                let source = document.getElementById("source")
+                let evalButton = document.getElementById("eval_button")
                 for(let i = 0; i < 25; i ++){
                     let line = document.createElement("div")
                     let lineElms = []
@@ -61,11 +112,7 @@
                 let isCompotision = false
                 let decideInputs = () => {
                     let value = cursorElm.value
-                    console.log(value)
-                    for(let i = 0; i < value.length; i ++){
-                        setChar(cursorX + i, cursorY, value[i])
-                    }
-                    setCursor(cursorX + value.length, cursorY)
+                    onInput(value)
                     cursorElm.value = ""
                 }
                 cursorElm.addEventListener("compositionstart", (e) => {
@@ -79,24 +126,15 @@
                     console.log(e.key)
                     switch(e.key){
                         case "Enter":
-                            setCursor(cursorX, cursorY + 1)
-                            break;
                         case "ArrowDown":
-                            setCursor(cursorX, cursorY + 1)
-                            break;
                         case "ArrowLeft":
-                            setCursor(cursorX - 1, cursorY )
-                            break;
                         case "ArrowRight":
-                            setCursor(cursorX + 1, cursorY )
-                            break;
                         case "ArrowUp":
-                            setCursor(cursorX, cursorY - 1)
+                            onKeyDown(e.key)
                             break;
                         case "Backspace":
                             if(!isCompotision){
-                                setCursor(cursorX - 1, cursorY )
-                                setChar(cursorX, cursorY, "")
+                                onKeyDown(e.key)
                             }
                             break;
                     }
@@ -106,29 +144,43 @@
                         decideInputs()
                     }
                 })
-            })
 
-            let touch = (e) => {
-                console.log(e.target)
-                let x = parseInt(e.target.dataset.x)
-                let y = parseInt(e.target.dataset.y)
-                setCursor(x, y)
-            }
-            if('ontouchstart' in document.documentElement){
-                window.addEventListener("touchstart", (e) => {
-                    touch(e)
-                }, true)
-            }else{
-                window.addEventListener("click", (e) => {
-                    touch(e)
-                }, true)
-            }
+                evalButton.addEventListener("click", (e) => {
+                    let sourceStr = source.value;
+                    let api = {
+                        setCursor,
+                        setChar,
+                        getChar,
+                    };
+                    ((Function('"use strict"; return (function(api){'+ sourceStr +'})'))()(api))
+                })
+
+                let touch = (e) => {
+                    console.log(e.target)
+                    let x = parseInt(e.target.dataset.x)
+                    let y = parseInt(e.target.dataset.y)
+                    onClick(x, y)
+                }
+                if('ontouchstart' in document.documentElement){
+                    main.addEventListener("touchstart", (e) => {
+                        touch(e)
+                    }, true)
+                }else{
+                    main.addEventListener("click", (e) => {
+                        touch(e)
+                    }, true)
+                }
+            })
         </script>
     </head>
     <body>
         <div id="main"></div>
         <div>
         Source: <a href="https://github.com/inajob/houganshi">https://github.com/inajob/houganshi</a>
+        </div>
+        <div>
+            <textarea id="source"></textarea>
+            <button id="eval_button">eval</button>
         </div>
     </body>
 </html>
