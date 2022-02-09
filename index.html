@@ -83,8 +83,6 @@
 
             window.addEventListener("load", (e) => {
                 let main = document.getElementById("main")
-                let source = document.getElementById("source")
-                let evalButton = document.getElementById("eval_button")
                 for(let i = 0; i < 25; i ++){
                     let line = document.createElement("div")
                     let lineElms = []
@@ -145,16 +143,6 @@
                     }
                 })
 
-                evalButton.addEventListener("click", (e) => {
-                    let sourceStr = source.value;
-                    let api = {
-                        setCursor,
-                        setChar,
-                        getChar,
-                    };
-                    ((Function('"use strict"; return (function(api){'+ sourceStr +'})'))()(api))
-                })
-
                 let touch = (e) => {
                     console.log(e.target)
                     let x = parseInt(e.target.dataset.x)
@@ -177,10 +165,6 @@
         <div id="main"></div>
         <div>
         Source: <a href="https://github.com/inajob/houganshi">https://github.com/inajob/houganshi</a>
-        </div>
-        <div>
-            <textarea id="source"></textarea>
-            <button id="eval_button">eval</button>
         </div>
     </body>
 </html>
