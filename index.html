@@ -59,11 +59,21 @@
                 main.appendChild(cursorElm)
 
                 let isCompotision = false
+                let decideInputs = () => {
+                    let value = cursorElm.value
+                    console.log(value)
+                    for(let i = 0; i < value.length; i ++){
+                        setChar(cursorX + i, cursorY, value[i])
+                    }
+                    setCursor(cursorX + value.length, cursorY)
+                    cursorElm.value = ""
+                }
                 cursorElm.addEventListener("compositionstart", (e) => {
                     isCompotision = true
                 })
                 cursorElm.addEventListener("compositionend", (e) => {
                     isCompotision = false
+                    decideInputs()
                 })
                 cursorElm.addEventListener("keydown", (e) => {
                     console.log(e.key)
@@ -84,23 +94,17 @@
                             setCursor(cursorX, cursorY - 1)
                             break;
                         case "Backspace":
-                            setCursor(cursorX - 1, cursorY )
-                            setChar(cursorX, cursorY, "")
+                            if(!isCompotision){
+                                setCursor(cursorX - 1, cursorY )
+                                setChar(cursorX, cursorY, "")
+                            }
                             break;
                     }
                 })
                 cursorElm.addEventListener("input", (e) => {
-                    setTimeout(() => {
-                      if(!isCompotision){
-                          let value = cursorElm.value
-                          console.log(value)
-                          for(let i = 0; i < value.length; i ++){
-                              setChar(cursorX + i, cursorY, value[i])
-                          }
-                          setCursor(cursorX + value.length, cursorY)
-                          cursorElm.value = ""
-                      }
-                    }, 100)
+                    if(!isCompotision){
+                        decideInputs()
+                    }
                 })
             })
 
