@@ -22,11 +22,50 @@
         </style>
         <script>
             let cursorElm = document.createElement("input")
+            let allData = [];
+            let allWidth = 1000;
+            let allHeight = 1000;
+            let partialX = 0;
+            let partialY = 0;
+            let dataElm = [];
             let data = [];
             let cursorX = 0;
             let cursorY = 0;
-
+            let width = 50;
+            let height = 25;
+            // === emulate server ===
+            let initAllData = () => {
+                for(let i = 0; i < 1000; i ++){
+                    let l = []
+                    for(let j = 0; j < 1000; j ++){
+                        l.push({value: ""})
+                    }
+                    allData.push(l)
+                }
+            }
+            let loadPartialData = (x, y) => {
+                for(let i = 0; i < data.length; i ++){
+                    for(let j = 0; j < data[i].length; j ++){
+                        data[i][j] = {value: allData[(i + y)%allWidth][(j + x)%allHeight].value}
+                    }
+                }
+            }
+            let saveAllData = (x, y, c) => {
+                console.log(x,y,c)
+                allData[y][x].value = c;
+            }
             // === API ===
+            let setPartialPos = (x, y) => {
+                partialX = (x+allWidth)%allWidth;
+                partialY = (y+allHeight)%allHeight;
+            }
+            let refresh = () => {
+                for(let i = 0; i < height; i ++){
+                    for(let j = 0; j < width; j ++){
+                        dataElm[i][j].firstChild.nodeValue = data[i][j].value
+                    }
+                }
+            }
             let setCursor = (x,y) => {
                 cursorElm.style.top = y * 20
                 cursorElm.style.left = x * 16
@@ -35,10 +74,12 @@
                 cursorY = y;
             }
             let setChar = (x, y, c) => {
-                data[y][x].innerHTML = c
+                data[y][x].value = c
+                dataElm[y][x].firstChild.nodeValue = c
+                saveAllData((x + partialX)%allWidth, (y + partialY)%allHeight, c)
             }
             let getChar = (x,y) => {
-                return data[y][x].innerHTML
+                return data[y][x].value
             }
             // === Event ===
             let onClick = (x, y) => {
@@ -47,7 +88,13 @@
             let onInput = (s) => {
                 for(let i = 0; i < s.length; i ++){
                     setChar(cursorX, cursorY, s[i])
-                    setCursor(cursorX + 1 ,cursorY)
+                    if(cursorX == width - 3){
+                        setPartialPos(partialX + 1, partialY)
+                        loadPartialData(partialX, partialY)
+                        refresh()
+                    }else{
+                        setCursor(cursorX + 1, cursorY)
+                    }
                 }
             }
             let onKeyDown = (k) => {
@@ -61,20 +108,50 @@
                             }
                             setCursor(cursorX, cursorY + 1)
                             break;
-                        case "ArrowDown":
-                            setCursor(cursorX, cursorY + 1)
-                            break;
                         case "ArrowLeft":
-                            setCursor(cursorX - 1, cursorY )
+                            if(cursorX == 0){
+                                setPartialPos(partialX - 1, partialY)
+                                loadPartialData(partialX, partialY)
+                                refresh()
+                            }else{
+                                setCursor(cursorX - 1, cursorY)
+                            }
                             break;
                         case "ArrowRight":
-                            setCursor(cursorX + 1, cursorY )
+                            if(cursorX == width - 1){
+                                setPartialPos(partialX + 1, partialY)
+                                loadPartialData(partialX, partialY)
+                                refresh()
+                            }else{
+                                setCursor(cursorX + 1, cursorY)
+                            }
                             break;
                         case "ArrowUp":
-                            setCursor(cursorX, cursorY - 1)
+                            if(cursorY == 0){
+                                setPartialPos(partialX, partialY - 1)
+                                loadPartialData(partialX, partialY)
+                                refresh()
+                            }else{
+                                setCursor(cursorX, cursorY - 1)
+                            }
+                            break;
+                        case "ArrowDown":
+                            if(cursorY == height - 1){
+                                setPartialPos(partialX, partialY + 1)
+                                loadPartialData(partialX, partialY)
+                                refresh()
+                            }else{
+                                setCursor(cursorX, cursorY + 1)
+                            }
                             break;
                         case "Backspace":
-                            setCursor(cursorX - 1, cursorY )
+                            if(cursorX == 2){
+                                setPartialPos(partialX - 1, partialY)
+                                loadPartialData(partialX, partialY)
+                                refresh()
+                            }else{
+                                setCursor(cursorX - 1, cursorY) 
+                            }
                             setChar(cursorX, cursorY, "")
                             break;
                     }
@@ -82,27 +159,34 @@
             // ============
 
             window.addEventListener("load", (e) => {
+                initAllData()
                 let main = document.getElementById("main")
-                for(let i = 0; i < 25; i ++){
+                for(let i = 0; i < height; i ++){
                     let line = document.createElement("div")
                     let lineElms = []
+                    let d = []
                     line.style.display = "flex"
-                    for(let j = 0; j < 50; j ++){
+                    for(let j = 0; j < width; j ++){
                         let elm = document.createElement("div")
                         elm.style.flexShrink = "0"
                         elm.style.flexBasis = "16px"
                         elm.style.height = "20px"
                         elm.style.backgroundColor = "#ddf"
                         elm.style.outline = "solid 1px #eef"
-                        elm.innerHTML = ""
+                        //elm.innerHTML = ""
+                        elm.appendChild(document.createTextNode(""))
                         elm.dataset.x = j
                         elm.dataset.y = i
                         line.appendChild(elm)
+                        d.push({value:""})
                         lineElms.push(elm)
                     }
                     main.appendChild(line)
-                    data.push(lineElms)
+                    dataElm.push(lineElms)
+                    data.push(d)
                 }
+                loadPartialData(partialX, partialY)
+                refresh()
                 cursorElm.type = "text"
                 cursorElm.className = "cursor"
                 main.appendChild(cursorElm)
