@@ -229,19 +229,19 @@
                     }
                 })
 
-                let touch = (e) => {
+                let touch = (px, py) => {
                     console.log(e)
-                    let x = e.clientX/charWidth | 0
-                    let y = e.clientY/charHeight | 0
+                    let x = px/charWidth | 0
+                    let y = py/charHeight | 0
                     onClick(x, y)
                 }
                 if('ontouchstart' in document.documentElement){
                     canv.addEventListener("touchstart", (e) => {
-                        touch(e)
+                        touch(e.touches[0].clientX, e.touches[0].clientY)
                     }, true)
                 }else{
                     canv.addEventListener("click", (e) => {
-                        touch(e)
+                        touch(e.clientX, e.clientY)
                     }, true)
                 }
             })
