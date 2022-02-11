@@ -278,7 +278,7 @@
                     refresh()
                 })
 
-                sock = new WebSocket("ws://" + server + "/ws");
+                sock = new WebSocket("wss://" + server + "/ws");
                 sock.onmessage = function(event) {
                     console.log(event.data)
                     let obj = JSON.parse(event.data)
