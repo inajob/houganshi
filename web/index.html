@@ -23,6 +23,12 @@
             }
         </style>
         <script>
+            
+            //const schema = "http://"
+            //const server = "localhost:8082"
+            
+            const schema = "https://"
+            const server = "houganshi.inajob.tk"
             let cursorElm = document.createElement("input")
             let allData = [];
             let allWidth = 1000;
@@ -38,6 +44,24 @@
             let charHeight = 20;
             let ctx
             // === emulate server ===
+            let loadFromServer = () => {
+                return fetch(schema + server + '/cells')
+                  .then(response => response.json())
+                  .then(data => {
+                      data.forEach((v) => {
+                          let obj = JSON.parse(v.Content)
+                          allData[v.Y][v.X].value = obj.Value
+                          console.log(v.Y, v.X, obj.Value)
+                      })
+                  });
+            }
+            let sendServer = (x, y ,c) => {
+                return fetch(schema + server + '/cell/' + x + '/' + y + '?value=' + c)
+                  .then(response => response.text())
+                  .then(data => {
+                      console.log(data)
+                  });
+            }
             let initAllData = () => {
                 for(let i = 0; i < 1000; i ++){
                     let l = []
@@ -88,6 +112,7 @@
                 data[y][x].value = c
                 refresh()
                 saveAllData((x + partialX)%allWidth, (y + partialY)%allHeight, c)
+                sendServer((x + partialX)%allWidth, (y + partialY)%allHeight, c)
             }
             let getChar = (x,y) => {
                 return data[y][x].value
@@ -98,7 +123,11 @@
             }
             let onInput = (s) => {
                 for(let i = 0; i < s.length; i ++){
-                    setChar(cursorX, cursorY, s[i])
+                    if(s[i] === " "){
+                        setChar(cursorX, cursorY, "")
+                    }else{
+                        setChar(cursorX, cursorY, s[i])
+                    }
                     if(cursorX == width - 3){
                         setPartialPos(partialX + 1, partialY)
                         loadPartialData(partialX, partialY)
@@ -244,6 +273,21 @@
                         touch(e.clientX, e.clientY)
                     }, true)
                 }
+                loadFromServer().then(() => {
+                    loadPartialData(partialX, partialY)
+                    refresh()
+                })
+
+                sock = new WebSocket("ws://" + server + "/ws");
+                sock.onmessage = function(event) {
+                    console.log(event.data)
+                    let obj = JSON.parse(event.data)
+                    let content = JSON.parse(obj.Content)
+                    saveAllData(obj.X, obj.Y, content.Value)
+                    loadPartialData(partialX, partialY)
+                    refresh()
+                };
+
             })
         </script>
     </head>
