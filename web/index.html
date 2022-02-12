@@ -1,5 +1,6 @@
 <html>
     <head>
+        <meta name="viewport" content="width=device-width,initial-scale=1">
         <style>
             html, body{
                 margin: 0;
@@ -258,19 +259,59 @@
                     }
                 })
 
+                let mousePressed = false
+                let preX = 0, preY = 0
                 let touch = (px, py) => {
                     console.log(e)
                     let x = px/charWidth | 0
                     let y = py/charHeight | 0
                     onClick(x, y)
                 }
+                let mouseDown = (x, y) =>{
+                    mousePressed = true
+                    preX = x
+                    preY = y
+                }
+                let mouseUp = () => {
+                    mousePressed = false
+                }
+                let mouseMove = (x, y) => {
+                    if(mousePressed){
+                        let lx = Math.floor(x)
+                        let ly = Math.floor(y)
+                        let dx = Math.floor((lx - preX)/charWidth)
+                        let dy = Math.floor((ly - preY)/charHeight)
+                        setPartialPos(partialX - dx, partialY - dy)
+                        loadPartialData(partialX, partialY)
+                        refresh()
+
+                        preX = Math.floor(lx/charWidth) * charWidth
+                        preY = Math.floor(ly/charHeight) * charHeight
+                    }
+                }
                 if('ontouchstart' in document.documentElement){
                     canv.addEventListener("touchstart", (e) => {
                         touch(e.touches[0].clientX, e.touches[0].clientY)
+                        mouseDown(e.touches[0].clientX, e.touches[0].clientY)
+                    }, true)
+                    canv.addEventListener("touchend", (e) => {
+                        mouseUp()
+                    }, true)
+                    canv.addEventListener("touchmove", (e) => {
+                        mouseMove(e.touches[0].clientX, e.touches[0].clientY)
                     }, true)
                 }else{
                     canv.addEventListener("click", (e) => {
                         touch(e.clientX, e.clientY)
+                    }, true)
+                    canv.addEventListener("mousedown", (e) => {
+                        mouseDown(e.clientX, e.clientY)
+                    }, true)
+                    canv.addEventListener("mouseup", (e) => {
+                        mouseUp()
+                    }, true)
+                    canv.addEventListener("mousemove", (e) => {
+                        mouseMove(e.clientX, e.clientY)
                     }, true)
                 }
                 loadFromServer().then(() => {
